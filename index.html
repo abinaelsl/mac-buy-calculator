@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🍎 Mac Max/Ultra Buy Confidence Calculator</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: #0a0a0f;
+    color: #e4e4e7;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+  .container {
+    max-width: 780px;
+    width: 100%;
+    background: linear-gradient(145deg, #121218, #1a1a24);
+    border-radius: 28px;
+    padding: 32px 36px 40px;
+    border: 1px solid #2a2a3a;
+    box-shadow: 0 25px 60px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.03) inset;
+  }
+  h1 {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -.5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  h1 span { background: linear-gradient(135deg,#f59e0b,#ef4444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .subtitle {
+    font-size: 13px;
+    color: #71717a;
+    margin-bottom: 28px;
+    border-bottom: 1px solid #27272a;
+    padding-bottom: 16px;
+  }
+  .subtitle strong { color: #a1a1aa; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field.full { grid-column: 1 / -1; }
+  label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #a1a1aa;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+  }
+  select, input {
+    background: #0d0d14;
+    border: 1px solid #2a2a3a;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 15px;
+    font-family: inherit;
+    color: #e4e4e7;
+    outline: none;
+    transition: border .2s, box-shadow .2s;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2371717a' d='M6 8L0 0h12z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+  select:focus, input:focus { border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,.15); }
+  input[type=number] { -moz-appearance: textfield; }
+  input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .currency-toggle {
+    display: flex;
+    background: #0d0d14;
+    border: 1px solid #2a2a3a;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .currency-toggle button {
+    flex: 1;
+    padding: 12px 14px;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    color: #71717a;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .currency-toggle button.active {
+    background: #f59e0b;
+    color: #09090b;
+  }
+  .calc-btn {
+    grid-column: 1 / -1;
+    background: linear-gradient(135deg,#f59e0b,#d97706);
+    border: none;
+    border-radius: 14px;
+    padding: 16px;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: inherit;
+    color: #09090b;
+    cursor: pointer;
+    transition: transform .15s, box-shadow .2s;
+    margin: 6px 0 4px;
+  }
+  .calc-btn:hover { transform: scale(1.015); box-shadow: 0 8px 30px rgba(245,158,11,.25); }
+  .calc-btn:active { transform: scale(.98); }
+
+  /* Result card */
+  .result {
+    display: none;
+    margin-top: 22px;
+    background: linear-gradient(135deg, #0d0d18, #14141f);
+    border: 1px solid #2a2a3a;
+    border-radius: 18px;
+    padding: 24px 28px;
+  }
+  .result.show { display: block; animation: fadeUp .4s ease; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+  .result-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .confidence-circle {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    background: conic-gradient(#f59e0b 0deg, #1a1a2e 0deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .confidence-circle::before {
+    content: '';
+    position: absolute;
+    width: 92px;
+    height: 92px;
+    border-radius: 50%;
+    background: #0d0d18;
+  }
+  .confidence-circle .pct {
+    position: relative;
+    z-index: 1;
+    font-size: 26px;
+    font-weight: 800;
+  }
+  .signal-badge {
+    font-size: 32px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    padding: 6px 16px;
+    border-radius: 12px;
+    background: rgba(245,158,11,.12);
+    border: 1px solid rgba(245,158,11,.2);
+  }
+
+  .result-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 14px 0 16px;
+  }
+  .detail-item {
+    background: #0d0d14;
+    border-radius: 10px;
+    padding: 10px 14px;
+    border: 1px solid #1f1f2a;
+  }
+  .detail-item .label { font-size: 11px; color: #71717a; text-transform: uppercase; letter-spacing: .4px; }
+  .detail-item .value { font-size: 15px; font-weight: 700; margin-top: 2px; }
+
+  .breakdown {
+    background: #0a0a10;
+    border-radius: 12px;
+    padding: 14px 18px;
+    border: 1px solid #1a1a28;
+    margin-top: 8px;
+  }
+  .breakdown h4 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: #71717a;
+    margin-bottom: 10px;
+  }
+  .breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    font-size: 13px;
+  }
+  .breakdown-row .bar-wrap {
+    flex: 1;
+    height: 6px;
+    background: #1a1a28;
+    border-radius: 3px;
+    margin: 0 12px;
+    overflow: hidden;
+  }
+  .breakdown-row .bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #f59e0b, #ef4444);
+    transition: width .6s ease;
+  }
+  .breakdown-row .br-label { color: #a1a1aa; min-width: 75px; }
+  .breakdown-row .br-score { font-weight: 700; min-width: 36px; text-align: right; }
+  .breakdown-row .br-w { color: #52525b; font-size: 11px; min-width: 26px; text-align: right; }
+
+  .verdict {
+    margin-top: 14px;
+    padding: 14px 18px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.5;
+    text-align: center;
+  }
+  .verdict.kkkkk { background: rgba(34,197,94,.12); border: 1px solid rgba(34,197,94,.25); color: #4ade80; }
+  .verdict.kkkk { background: rgba(34,197,94,.08); border: 1px solid rgba(34,197,94,.15); color: #86efac; }
+  .verdict.kkk { background: rgba(245,158,11,.1); border: 1px solid rgba(245,158,11,.2); color: #fbbf24; }
+  .verdict.kk { background: rgba(251,146,60,.1); border: 1px solid rgba(251,146,60,.2); color: #fb923c; }
+  .verdict.k { background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.2); color: #f87171; }
+  .verdict.skip { background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.2); color: #ef4444; }
+
+  .footnote {
+    font-size: 11px;
+    color: #52525b;
+    margin-top: 14px;
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 600px) {
+    .container { padding: 20px 16px; }
+    .grid { grid-template-columns: 1fr; }
+    .result-top { flex-direction: column; gap: 14px; }
+    .result-details { grid-template-columns: 1fr; }
+    .confidence-circle { width: 90px; height: 90px; }
+    .confidence-circle::before { width: 74px; height: 74px; }
+    .confidence-circle .pct { font-size: 22px; }
+    .signal-badge { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<h1>🍎 <span>Mac Confidence</span> Calculator</h1>
+<div class="subtitle">DRAM shortage· based on <strong>Jul 2026</strong> market research</div>
+
+<div class="grid">
+  <div class="field">
+    <label>Chip Generation</label>
+    <select id="chip">
+      <optgroup label="── MacBook Pro Series ──">
+        <option value="m1-max">M1 Max (2021)</option>
+        <option value="m2-max">M2 Max (2023)</option>
+        <option value="m3-max" selected>M3 Max (2023)</option>
+        <option value="m4-max">M4 Max (2024)</option>
+        <option value="m5-max">M5 Max (2025–26)</option>
+      </optgroup>
+      <optgroup label="── Mac Studio Series ──">
+        <option value="m1-max-studio">M1 Max Studio (2022)</option>
+        <option value="m1-ultra-studio">M1 Ultra Studio (2022)</option>
+        <option value="m2-max-studio">M2 Max Studio (2023)</option>
+        <option value="m2-ultra-studio">M2 Ultra Studio (2023)</option>
+        <option value="m3-ultra-studio">M3 Ultra Studio (2025)</option>
+        <option value="m4-ultra-studio">M4 Ultra Studio (upcoming)</option>
+      </optgroup>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>Form Factor</label>
+    <select id="form">
+      <option value="14">MacBook Pro 14″</option>
+      <option value="16" selected>MacBook Pro 16″</option>
+      <option value="studio">Mac Studio / Pro</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>RAM (Unified Memory)</label>
+    <select id="ram">
+      <option value="32">32 GB</option>
+      <option value="36">36 GB</option>
+      <option value="48">48 GB</option>
+      <option value="64">64 GB</option>
+      <option value="96">96 GB</option>
+      <option value="128" selected>128 GB</option>
+      <option value="192">192 GB</option>
+      <option value="256">256 GB</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>Condition</label>
+    <select id="condition">
+      <option value="new">New / Sealed</option>
+      <option value="open">Open Box</option>
+      <option value="excellent" selected>Used — Excellent</option>
+      <option value="good">Used — Good</option>
+      <option value="fair">Used — Fair (scratches)</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>Your Price</label>
+    <input type="number" id="price" placeholder="e.g. 476000" value="476000">
+  </div>
+
+  <div class="field">
+    <label>Currency</label>
+    <div class="currency-toggle" id="currencyToggle">
+      <button data-ccy="JPY" class="active">¥ JPY</button>
+      <button data-ccy="USD">$ USD</button>
+    </div>
+  </div>
+
+  <button class="calc-btn" id="calcBtn">🔮 Calculate Confidence →</button>
+</div>
+
+<!-- Result -->
+<div class="result" id="result">
+  <div class="result-top">
+    <div class="confidence-circle" id="confCircle">
+      <span class="pct" id="confPct">—</span>
+    </div>
+    <div>
+      <div style="font-size:13px;color:#71717a;margin-bottom:4px;">Signal Rating</div>
+      <div class="signal-badge" id="signalBadge">—</div>
+    </div>
+  </div>
+
+  <div class="verdict" id="verdictLine">—</div>
+
+  <div class="result-details">
+    <div class="detail-item"><div class="label">Config</div><div class="value" id="detailConfig">—</div></div>
+    <div class="detail-item"><div class="label">MSRP (launch)</div><div class="value" id="detailMsrp">—</div></div>
+    <div class="detail-item"><div class="label">Max Buy Price</div><div class="value" id="detailMbp">—</div></div>
+    <div class="detail-item"><div class="label">Your Price</div><div class="value" id="detailYourPrice">—</div></div>
+    <div class="detail-item"><div class="label">Discount vs MSRP</div><div class="value" id="detailDiscount">—</div></div>
+    <div class="detail-item"><div class="label">DRAM Market</div><div class="value" id="detailDram">—</div></div>
+  </div>
+
+  <div class="breakdown">
+    <h4>📊 Confidence Breakdown</h4>
+    <div id="breakdownBars"></div>
+  </div>
+
+  <div class="footnote">
+    Based on DRAM shortage research (Jul 2026).<br>
+    Prices are estimates — actual market varies by region & timing.
+  </div>
+</div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  DATA: Chip + Form + RAM → MSRP lookup
+// ═══════════════════════════════════════════════════════════════
+const MSRP = {
+  // ── MacBook Pro 14″ ──
+  'm1-max|14':      { 32: 2499, 64: 2899 },
+  'm2-max|14':      { 32: 3099, 64: 3499, 96: 3999 },
+  'm3-max|14':      { 36: 3199, 48: 3499, 64: 3799, 96: 4199, 128: 4499 },
+  'm4-max|14':      { 36: 3299, 48: 3599, 64: 3899, 96: 4299, 128: 4599 },
+  'm5-max|14':      { 36: 3599, 48: 3899, 64: 4199, 128: 5199 },
+  // ── MacBook Pro 16″ ──
+  'm1-max|16':      { 32: 3099, 64: 3499 },
+  'm2-max|16':      { 32: 3499, 64: 3899, 96: 4399 },
+  'm3-max|16':      { 36: 3499, 48: 3699, 64: 3999, 96: 4499, 128: 4799 },
+  'm4-max|16':      { 36: 3599, 48: 3899, 64: 4099, 128: 4899 },
+  'm5-max|16':      { 36: 3899, 48: 4199, 64: 4399, 128: 5399 },
+  // ── Mac Studio ──
+  'm1-max-studio|studio': { 32: 1999, 64: 2299 },
+  'm1-ultra-studio|studio':{ 64: 3999, 128: 4999 },
+  'm2-max-studio|studio': { 32: 1999, 64: 2499, 96: 2999 },
+  'm2-ultra-studio|studio':{ 64: 3999, 128: 4999, 192: 5999 },
+  'm3-ultra-studio|studio':{ 64: 4999, 96: 5499, 128: 5999, 192: 6999, 256: 7999 },
+  'm4-ultra-studio|studio':{ 64: 5499, 128: 6999, 256: 9499 },
+};
+
+// Extra RAM that's NOT available for a given key → grey out / mark
+const VALID_RAM = {
+  'm1-max':       [32,64],
+  'm2-max':       [32,64,96],
+  'm3-max':       [36,48,64,96,128],
+  'm4-max':       [36,48,64,96,128],
+  'm5-max':       [36,48,64,128],
+  'm1-max-studio':[32,64],
+  'm1-ultra-studio':[64,128],
+  'm2-max-studio':[32,64,96],
+  'm2-ultra-studio':[64,128,192],
+  'm3-ultra-studio':[64,96,128,192,256],
+  'm4-ultra-studio':[64,128,256],
+};
+
+// ── Chip scores (base capability, 0–1) ──
+const CHIP_SCORE = {
+  'm1-max': .65, 'm2-max': .75, 'm3-max': .85, 'm4-max': .90, 'm5-max': .80,
+  'm1-max-studio': .65, 'm1-ultra-studio': .75,
+  'm2-max-studio': .72, 'm2-ultra-studio': .82,
+  'm3-ultra-studio': .88, 'm4-ultra-studio': .60,
+};
+
+// ── RAM score (0–1) ──
+function ramScore(ramGb) {
+  const m = { 32:.50, 36:.55, 48:.65, 64:.75, 96:.88, 128:.95, 192:.90, 256:.86 };
+  return m[ramGb] ?? .40;
+}
+
+// ── Depreciation factor by age ──
+function ageYears(chip) {
+  const m = {
+    'm1-max':5,'m2-max':3.5,'m3-max':2.7,'m4-max':1.5,'m5-max':.5,
+    'm1-max-studio':4.5,'m1-ultra-studio':4.5,
+    'm2-max-studio':3,'m2-ultra-studio':3,
+    'm3-ultra-studio':.8,'m4-ultra-studio':0,
+  };
+  return m[chip] ?? 3;
+}
+
+// ── Condition multiplier (used price as fraction of new) ──
+const COND_FACTOR = { new:1.0, open:.92, excellent:.80, good:.70, fair:.58 };
+
+// ── Unicorn bonuses ──
+const UNICORN = {
+  'm2-max|96':  .12,
+  'm3-max|128': .10,
+  'm4-max|128': .08,
+  'm2-ultra-studio|192': .06,
+  'm3-ultra-studio|256': .05,
+  'm1-ultra-studio|128': .08,
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  MAIN CALC
+// ═══════════════════════════════════════════════════════════════
+function calc() {
+  const chip   = document.getElementById('chip').value;
+  const form   = document.getElementById('form').value;
+  const ramGb  = parseInt(document.getElementById('ram').value);
+  const cond   = document.getElementById('condition').value;
+  const price  = parseFloat(document.getElementById('price').value);
+  const ccy    = document.querySelector('#currencyToggle .active').dataset.ccy;
+
+  // Validate
+  if (!price || price <= 0) { alert('Enter a price!'); return; }
+
+  // Convert JPY→USD ~ 155:1
+  const priceUSD = ccy === 'JPY' ? price / 155 : price;
+
+  // Lookup MSRP
+  const key = `${chip}|${form}`;
+  const msrpMap = MSRP[key];
+  if (!msrpMap || msrpMap[ramGb] === undefined) {
+    document.getElementById('result').classList.remove('show');
+    alert(`⚠️ ${ramGb}GB RAM is not available for this config. Please pick a valid combination.`);
+    return;
+  }
+  const originalMSRP = msrpMap[ramGb];
+
+  // ─── Factor 1: Deal Quality (30%) ───
+  // How much below MSRP?
+  const discountPct = Math.max(0, (originalMSRP - priceUSD) / originalMSRP);
+  // Adjust for age — a 5yr old Mac should be cheaper; the "expected" discount
+  const age = ageYears(chip);
+  const expectedDepreciation = Math.min(.85, age * .12);  // ~12% per year
+  // Deal quality = actual discount / expected discount (capped at 1.5 for amazing deals)
+  let dealFactor = expectedDepreciation > 0
+    ? Math.min(1.4, discountPct / expectedDepreciation)
+    : 1;
+  // Condition adjustment
+  const condAdj = cond === 'new' ? .85 : cond === 'open' ? .90 : cond === 'excellent' ? 1.0 : cond === 'good' ? 1.05 : 1.12;
+  dealFactor = Math.min(1.4, dealFactor * condAdj);
+  const dealScore = Math.min(1, dealFactor);
+
+  // ─── Factor 2: RAM Rarity & Utility (25%) ───
+  let ramScoreVal = ramScore(ramGb);
+  // Unicorn bonus
+  const unicornKey = `${chip}|${ramGb}`;
+  if (UNICORN[unicornKey]) ramScoreVal = Math.min(1, ramScoreVal + UNICORN[unicornKey]);
+  // RAM bandwidth penalty for M1 (only 200GB/s)
+  if (chip.startsWith('m1-') && !chip.includes('ultra') && ramGb >= 64) ramScoreVal *= .92;
+
+  // ─── Factor 3: Chip Relevance (15%) ───
+  let chipScoreVal = CHIP_SCORE[chip] ?? .70;
+  if (chip === 'm5-max') chipScoreVal = Math.min(.82, chipScoreVal - .03); // overpriced penalty
+
+  // ─── Factor 4: DRAM Market Timing (15%) ───
+  // We're in a structural shortage. Higher RAM = more value in buying now.
+  let dramFactor = .75 + (ramGb / 512);  // 32GB→.81, 128GB→1.0
+  dramFactor = Math.min(1, dramFactor);
+
+  // ─── Factor 5: Form Factor Utility (15%) ───
+  let ffScore = form === '16' ? .90 : form === '14' ? .82 : .95; // Studio no battery degradation
+  // Portability bonus for MBP
+  if (form !== 'studio' && chipScoreVal >= .65) ffScore += .05;
+
+  // ─── Weighted final ───
+  const w = [.30, .25, .15, .15, .15];
+  let raw = dealScore*w[0] + ramScoreVal*w[1] + chipScoreVal*w[2] + dramFactor*w[3] + ffScore*w[4];
+
+  // Cap
+  let confidence = Math.round(Math.min(.98, Math.max(.05, raw)) * 100);
+
+  // ─── Signal & Verdict ───
+  let signal, signalClass, verdictText;
+  if (confidence >= 92) { signal = 'KKKKK'; signalClass = 'kkkkk'; verdictText = '🔥 No-brainer buy. This config is rare and priced well below market during a DRAM shortage.'; }
+  else if (confidence >= 82) { signal = 'KKKK'; signalClass = 'kkkk'; verdictText = '✅ Strong buy. Very good deal — you won\'t find this much cheaper in the current market.'; }
+  else if (confidence >= 70) { signal = 'KKK'; signalClass = 'kkk'; verdictText = '👍 Moderate buy. Fair price for current conditions, but room to negotiate.'; }
+  else if (confidence >= 55) { signal = 'KK'; signalClass = 'kk'; verdictText = '👌 Weak buy. Only get it if you genuinely need this specific config right now.'; }
+  else if (confidence >= 40) { signal = 'K'; signalClass = 'k'; verdictText = '⚠️ Wait. Overpriced for what it is — prices are likely to come down or better deals exist.'; }
+  else { signal = '✗ SKIP'; signalClass = 'skip'; verdictText = '🚫 Do not buy. This is either too expensive or a bad config choice in the current climate.'; }
+
+  // ─── Render ───
+  const confDeg = (confidence / 100) * 360;
+  document.getElementById('confCircle').style.background =
+    `conic-gradient(#f59e0b ${confDeg}deg, #1a1a2e ${confDeg}deg)`;
+  document.getElementById('confPct').textContent = confidence + '%';
+  document.getElementById('signalBadge').textContent = signal;
+  document.getElementById('signalBadge').style.color =
+    confidence >= 82 ? '#4ade80' : confidence >= 70 ? '#fbbf24' : confidence >= 55 ? '#fb923c' : '#f87171';
+
+  document.getElementById('verdictLine').className = 'verdict ' + signalClass;
+  document.getElementById('verdictLine').textContent = verdictText;
+
+  // Details
+  const chipNames = {
+    'm1-max':'M1 Max','m2-max':'M2 Max','m3-max':'M3 Max','m4-max':'M4 Max','m5-max':'M5 Max',
+    'm1-max-studio':'M1 Max Studio','m1-ultra-studio':'M1 Ultra Studio',
+    'm2-max-studio':'M2 Max Studio','m2-ultra-studio':'M2 Ultra Studio',
+    'm3-ultra-studio':'M3 Ultra Studio','m4-ultra-studio':'M4 Ultra Studio',
+  };
+  const formNames = { '14':'14″ MBP','16':'16″ MBP','studio':'Mac Studio' };
+  document.getElementById('detailConfig').textContent =
+    `${chipNames[chip]} · ${formNames[form]} · ${ramGb}GB`;
+  document.getElementById('detailMsrp').textContent = `$${originalMSRP.toLocaleString()}`;
+
+  // MBP (max buy price) is the guide's threshold — use the deal threshold logic
+  const ageAdj = 1 - expectedDepreciation;
+  const dramPremium = 1 + Math.min(.25, ramGb / 640);  // up to +25% premium for 128GB
+  const mbpUSD = Math.round(originalMSRP * ageAdj * dramPremium * (cond === 'new' ? .95 : cond === 'open' ? .88 : cond === 'excellent' ? .82 : cond === 'good' ? .73 : .62));
+  document.getElementById('detailMbp').textContent = `$${mbpUSD.toLocaleString()}`;
+  document.getElementById('detailYourPrice').textContent =
+    ccy === 'JPY' ? `¥${price.toLocaleString()}` : `$${price.toLocaleString()}`;
+
+  const discPctDisplay = Math.round(discountPct * 100);
+  document.getElementById('detailDiscount').textContent =
+    discountPct > 0 ? `−${discPctDisplay}% vs MSRP` : 'At or above MSRP';
+
+  const dramDesc = confidence >= 75 ? '📈 Rising (buy now)' : confidence >= 60 ? '📈 Elevated' : '📉 Stabilizing';
+  document.getElementById('detailDram').textContent = dramDesc;
+
+  // Breakdown bars
+  const items = [
+    { label: 'Deal Quality',   w: '30%', score: dealScore },
+    { label: 'RAM Rarity',     w: '25%', score: ramScoreVal },
+    { label: 'Chip Relevance', w: '15%', score: chipScoreVal },
+    { label: 'DRAM Timing',    w: '15%', score: dramFactor },
+    { label: 'Form Factor',    w: '15%', score: ffScore },
+  ];
+  document.getElementById('breakdownBars').innerHTML = items.map(i => {
+    const pct = Math.round(i.score * 100);
+    const color = pct >= 85 ? '#4ade80' : pct >= 70 ? '#fbbf24' : pct >= 55 ? '#fb923c' : '#f87171';
+    return `<div class="breakdown-row">
+      <span class="br-label">${i.label}</span>
+      <span class="bar-wrap"><span class="bar-fill" style="width:${pct}%;background:${color}"></span></span>
+      <span class="br-score">${pct}%</span>
+      <span class="br-w">${i.w}</span>
+    </div>`;
+  }).join('');
+
+  document.getElementById('result').classList.add('show');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  UI HELPERS
+// ═══════════════════════════════════════════════════════════════
+
+// Restrict RAM options when chip changes
+function updateRamOptions() {
+  const chip = document.getElementById('chip').value;
+  const select = document.getElementById('ram');
+  const valid = VALID_RAM[chip] || [64,128];
+  const currentVal = parseInt(select.value);
+  let hasCurrent = false;
+  for (let opt of select.options) {
+    const val = parseInt(opt.value);
+    if (valid.includes(val)) {
+      opt.disabled = false;
+      if (val === currentVal) hasCurrent = true;
+    } else {
+      opt.disabled = true;
+    }
+  }
+  if (!hasCurrent && valid.length > 0) select.value = String(valid[valid.length-1]);
+}
+
+// Force Studio form factor for studio chips
+function syncFormFactor() {
+  const chip = document.getElementById('chip').value;
+  const form = document.getElementById('form');
+  if (chip.includes('studio')) {
+    form.value = 'studio';
+    form.disabled = true;
+  } else {
+    form.disabled = false;
+  }
+}
+
+document.getElementById('chip').addEventListener('change', () => { syncFormFactor(); updateRamOptions(); });
+document.getElementById('chip').dispatchEvent(new Event('change'));
+
+// Currency toggle
+document.querySelectorAll('#currencyToggle button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#currencyToggle button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+
+// Calc button
+document.getElementById('calcBtn').addEventListener('click', calc);
+
+// Enter key
+document.getElementById('price').addEventListener('keydown', e => { if (e.key === 'Enter') calc(); });
+
+// Auto-run demo on load
+window.addEventListener('load', () => { setTimeout(calc, 300); });
+</script>
+</body>
+</html>
