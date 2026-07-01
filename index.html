@@ -42,6 +42,7 @@
     margin-bottom: 28px;
     border-bottom: 1px solid #27272a;
     padding-bottom: 16px;
+    line-height: 1.5;
   }
   .subtitle strong { color: #a1a1aa; }
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
@@ -69,6 +70,7 @@
   }
   select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2371717a' d='M6 8L0 0h12z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
   select:focus, input:focus { border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,.15); }
+  select option:disabled { color: #3f3f46; }
   input[type=number] { -moz-appearance: textfield; }
   input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   .currency-toggle {
@@ -110,6 +112,19 @@
   }
   .calc-btn:hover { transform: scale(1.015); box-shadow: 0 8px 30px rgba(245,158,11,.25); }
   .calc-btn:active { transform: scale(.98); }
+
+  .inline-error {
+    grid-column: 1 / -1;
+    display: none;
+    background: rgba(239,68,68,.1);
+    border: 1px solid rgba(239,68,68,.25);
+    color: #f87171;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .inline-error.show { display: block; }
 
   /* Result card */
   .result {
@@ -164,6 +179,17 @@
     border: 1px solid rgba(245,158,11,.2);
   }
 
+  .deal-line {
+    text-align: center;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 10px 14px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+  }
+  .deal-line.good { background: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.22); color: #4ade80; }
+  .deal-line.bad  { background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.22); color: #f87171; }
+
   .result-details {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -178,6 +204,18 @@
   }
   .detail-item .label { font-size: 11px; color: #71717a; text-transform: uppercase; letter-spacing: .4px; }
   .detail-item .value { font-size: 15px; font-weight: 700; margin-top: 2px; }
+
+  .market-banner {
+    background: rgba(245,158,11,.07);
+    border: 1px solid rgba(245,158,11,.18);
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin: 4px 0 12px;
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: #d4d4d8;
+  }
+  .market-banner b { color: #fbbf24; }
 
   .breakdown {
     background: #0a0a10;
@@ -214,7 +252,7 @@
     background: linear-gradient(90deg, #f59e0b, #ef4444);
     transition: width .6s ease;
   }
-  .breakdown-row .br-label { color: #a1a1aa; min-width: 75px; }
+  .breakdown-row .br-label { color: #a1a1aa; min-width: 82px; }
   .breakdown-row .br-score { font-weight: 700; min-width: 36px; text-align: right; }
   .breakdown-row .br-w { color: #52525b; font-size: 11px; min-width: 26px; text-align: right; }
 
@@ -234,10 +272,27 @@
   .verdict.k { background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.2); color: #f87171; }
   .verdict.skip { background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.2); color: #ef4444; }
 
+  .tips {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .tip {
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: #a1a1aa;
+    background: #0d0d14;
+    border: 1px solid #1a1a28;
+    border-left: 3px solid #f59e0b;
+    border-radius: 8px;
+    padding: 8px 12px;
+  }
+
   .footnote {
     font-size: 11px;
     color: #52525b;
-    margin-top: 14px;
+    margin-top: 16px;
     text-align: center;
     line-height: 1.6;
   }
@@ -259,7 +314,10 @@
 <div class="container">
 
 <h1>🍎 <span>Mac Confidence</span> Calculator</h1>
-<div class="subtitle">DRAM shortage· based on <strong>Jul 2026</strong> market research</div>
+<div class="subtitle">
+  Structural <strong>DRAM shortage</strong> (2025–2028+) · Apple <strong>+18–33% price hike</strong> Jun 25 2026 —
+  buy-signal model based on <strong>Jul 2026</strong> market research. Ceilings anchored to the guide's <strong>Max Buy Price</strong> tables.
+</div>
 
 <div class="grid">
   <div class="field">
@@ -330,6 +388,8 @@
     </div>
   </div>
 
+  <div class="inline-error" id="errBox"></div>
+
   <button class="calc-btn" id="calcBtn">🔮 Calculate Confidence →</button>
 </div>
 
@@ -345,15 +405,18 @@
     </div>
   </div>
 
+  <div class="deal-line" id="dealLine">—</div>
   <div class="verdict" id="verdictLine">—</div>
+
+  <div class="market-banner" id="marketBanner">—</div>
 
   <div class="result-details">
     <div class="detail-item"><div class="label">Config</div><div class="value" id="detailConfig">—</div></div>
-    <div class="detail-item"><div class="label">MSRP (launch)</div><div class="value" id="detailMsrp">—</div></div>
-    <div class="detail-item"><div class="label">Max Buy Price</div><div class="value" id="detailMbp">—</div></div>
+    <div class="detail-item"><div class="label">Launch MSRP</div><div class="value" id="detailMsrp">—</div></div>
+    <div class="detail-item"><div class="label">Est. New Today (post-hike)</div><div class="value" id="detailNewToday">—</div></div>
+    <div class="detail-item"><div class="label">Max Buy Price (ceiling)</div><div class="value" id="detailMbp">—</div></div>
     <div class="detail-item"><div class="label">Your Price</div><div class="value" id="detailYourPrice">—</div></div>
-    <div class="detail-item"><div class="label">Discount vs MSRP</div><div class="value" id="detailDiscount">—</div></div>
-    <div class="detail-item"><div class="label">DRAM Market</div><div class="value" id="detailDram">—</div></div>
+    <div class="detail-item"><div class="label">Discount vs New Today</div><div class="value" id="detailDiscount">—</div></div>
   </div>
 
   <div class="breakdown">
@@ -361,9 +424,11 @@
     <div id="breakdownBars"></div>
   </div>
 
+  <div class="tips" id="tips"></div>
+
   <div class="footnote">
-    Based on DRAM shortage research (Jul 2026).<br>
-    Prices are estimates — actual market varies by region & timing.
+    Ceilings from the 2026 Buy-Signal Guide · timing from the DRAM-shortage research (Jul 1 2026).<br>
+    JPY↔USD at ≈155:1. Prices are estimates — actual market varies by region, seller & battery health.
   </div>
 </div>
 
@@ -371,7 +436,12 @@
 
 <script>
 // ═══════════════════════════════════════════════════════════════
-//  DATA: Chip + Form + RAM → MSRP lookup
+//  CONSTANTS
+// ═══════════════════════════════════════════════════════════════
+const JPY_PER_USD = 155;
+
+// ═══════════════════════════════════════════════════════════════
+//  DATA: Chip + Form + RAM → Launch MSRP (USD)
 // ═══════════════════════════════════════════════════════════════
 const MSRP = {
   // ── MacBook Pro 14″ ──
@@ -387,66 +457,126 @@ const MSRP = {
   'm4-max|16':      { 36: 3599, 48: 3899, 64: 4099, 128: 4899 },
   'm5-max|16':      { 36: 3899, 48: 4199, 64: 4399, 128: 5399 },
   // ── Mac Studio ──
-  'm1-max-studio|studio': { 32: 1999, 64: 2299 },
+  'm1-max-studio|studio':  { 32: 1999, 64: 2299 },
   'm1-ultra-studio|studio':{ 64: 3999, 128: 4999 },
-  'm2-max-studio|studio': { 32: 1999, 64: 2499, 96: 2999 },
-  'm2-ultra-studio|studio':{ 64: 3999, 128: 4999, 192: 5999 },
+  'm2-max-studio|studio':  { 32: 1999, 64: 2499, 96: 2999 },
+  'm2-ultra-studio|studio':{ 64: 3999, 96: 4499, 128: 4999, 192: 5999 },
   'm3-ultra-studio|studio':{ 64: 4999, 96: 5499, 128: 5999, 192: 6999, 256: 7999 },
   'm4-ultra-studio|studio':{ 64: 5499, 128: 6999, 256: 9499 },
 };
 
-// Extra RAM that's NOT available for a given key → grey out / mark
-const VALID_RAM = {
-  'm1-max':       [32,64],
-  'm2-max':       [32,64,96],
-  'm3-max':       [36,48,64,96,128],
-  'm4-max':       [36,48,64,96,128],
-  'm5-max':       [36,48,64,128],
-  'm1-max-studio':[32,64],
-  'm1-ultra-studio':[64,128],
-  'm2-max-studio':[32,64,96],
-  'm2-ultra-studio':[64,128,192],
-  'm3-ultra-studio':[64,96,128,192,256],
-  'm4-ultra-studio':[64,128,256],
+// ═══════════════════════════════════════════════════════════════
+//  MAX BUY PRICE (MBP) — the guide's "high-confidence" ceiling (USD)
+//  Source: 2026 Buy-Signal Guide per-config tables.
+//  Missing (chip|form|ram) combos are interpolated from real neighbours.
+//  M4 Ultra values are conservative "wait-for-used" estimates.
+// ═══════════════════════════════════════════════════════════════
+const MBP_USD = {
+  // 14″ MBP
+  'm1-max|14|32':900,  'm1-max|14|64':1300,
+  'm2-max|14|32':1400, 'm2-max|14|64':1800, 'm2-max|14|96':2200,
+  'm3-max|14|36':1600, 'm3-max|14|48':1800, 'm3-max|14|64':2100, 'm3-max|14|96':2600, 'm3-max|14|128':3000,
+  'm4-max|14|36':2000, 'm4-max|14|48':2300, 'm4-max|14|64':2700, 'm4-max|14|96':3200, 'm4-max|14|128':3500,
+  'm5-max|14|36':2800, 'm5-max|14|48':3100, 'm5-max|14|64':3500, 'm5-max|14|128':4200,
+  // 16″ MBP
+  'm1-max|16|32':1100, 'm1-max|16|64':1500,
+  'm2-max|16|32':1500, 'm2-max|16|64':1900, 'm2-max|16|96':2300,
+  'm3-max|16|36':1700, 'm3-max|16|48':1900, 'm3-max|16|64':2200, 'm3-max|16|96':2700, 'm3-max|16|128':3100,
+  'm4-max|16|36':2200, 'm4-max|16|64':2800, 'm4-max|16|128':3700,
+  'm5-max|16|36':3000, 'm5-max|16|64':3700, 'm5-max|16|128':4500,
+  // Mac Studio
+  'm1-max-studio|studio|32':900,  'm1-max-studio|studio|64':1200,
+  'm1-ultra-studio|studio|64':2000, 'm1-ultra-studio|studio|128':2600,
+  'm2-max-studio|studio|32':1400, 'm2-max-studio|studio|64':1700, 'm2-max-studio|studio|96':2100,
+  'm2-ultra-studio|studio|64':2400, 'm2-ultra-studio|studio|96':2800, 'm2-ultra-studio|studio|128':3200, 'm2-ultra-studio|studio|192':4000,
+  'm3-ultra-studio|studio|64':3800, 'm3-ultra-studio|studio|96':4200, 'm3-ultra-studio|studio|128':4800, 'm3-ultra-studio|studio|192':5500, 'm3-ultra-studio|studio|256':6500,
+  // M4 Ultra — "wait for used" estimates (guide flags do-not-buy-at-launch)
+  'm4-ultra-studio|studio|64':3400, 'm4-ultra-studio|studio|128':4300, 'm4-ultra-studio|studio|256':5900,
 };
 
-// ── Chip scores (base capability, 0–1) ──
+// ── Chip capability / relevance (0–1) — newer = more capable; all Apple Silicon has strong longevity ──
 const CHIP_SCORE = {
-  'm1-max': .65, 'm2-max': .75, 'm3-max': .85, 'm4-max': .90, 'm5-max': .80,
-  'm1-max-studio': .65, 'm1-ultra-studio': .75,
-  'm2-max-studio': .72, 'm2-ultra-studio': .82,
-  'm3-ultra-studio': .88, 'm4-ultra-studio': .60,
+  'm1-max': .62, 'm2-max': .72, 'm3-max': .82, 'm4-max': .90, 'm5-max': .96,
+  'm1-max-studio': .62, 'm1-ultra-studio': .78,
+  'm2-max-studio': .70, 'm2-ultra-studio': .84,
+  'm3-ultra-studio': .92, 'm4-ultra-studio': .97,
 };
 
-// ── RAM score (0–1) ──
+// ── RAM rarity / resale-floor score (0–1). Peaks at 96–128GB per guide Rule 4. ──
 function ramScore(ramGb) {
-  const m = { 32:.50, 36:.55, 48:.65, 64:.75, 96:.88, 128:.95, 192:.90, 256:.86 };
+  const m = { 32:.48, 36:.52, 48:.62, 64:.74, 96:.90, 128:.96, 192:.93, 256:.90 };
   return m[ramGb] ?? .40;
 }
 
-// ── Depreciation factor by age ──
-function ageYears(chip) {
-  const m = {
-    'm1-max':5,'m2-max':3.5,'m3-max':2.7,'m4-max':1.5,'m5-max':.5,
-    'm1-max-studio':4.5,'m1-ultra-studio':4.5,
-    'm2-max-studio':3,'m2-ultra-studio':3,
-    'm3-ultra-studio':.8,'m4-ultra-studio':0,
-  };
-  return m[chip] ?? 3;
-}
-
-// ── Condition multiplier (used price as fraction of new) ──
-const COND_FACTOR = { new:1.0, open:.92, excellent:.80, good:.70, fair:.58 };
-
-// ── Unicorn bonuses ──
+// ── Unicorn / rarity bonuses (added to RAM score) keyed chip|ram ──
 const UNICORN = {
-  'm2-max|96':  .12,
+  'm2-max|96':  .12,   // only 96GB laptop ever made
+  'm3-max|96':  .06,
   'm3-max|128': .10,
+  'm4-max|96':  .06,
   'm4-max|128': .08,
+  'm1-ultra-studio|128': .08,
+  'm2-ultra-studio|128': .05,
   'm2-ultra-studio|192': .06,
   'm3-ultra-studio|256': .05,
-  'm1-ultra-studio|128': .08,
+  'm3-ultra-studio|192': .03,
 };
+
+// ── Condition adjusts the effective MBP ceiling (sealed justifies paying a bit more) ──
+const COND_CEIL = { new:1.10, open:1.05, excellent:1.00, good:.94, fair:.85 };
+
+// ═══════════════════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════════════════
+function clamp(x, lo, hi) { return Math.min(hi, Math.max(lo, x)); }
+
+// Linear interpolation / extrapolation over [ram, mbp] points
+function interp(pts, x) {
+  if (pts.length === 1) return pts[0][1];
+  let i = 0;
+  for (; i < pts.length - 1; i++) { if (x <= pts[i+1][0]) break; }
+  const [x0,y0] = pts[i], [x1,y1] = pts[i+1];
+  const t = (x - x0) / (x1 - x0);
+  return y0 + t * (y1 - y0);
+}
+
+// Return { mbp, exact } — exact MBP if listed, else interpolated from neighbours
+function getMBP(chip, form, ram) {
+  const exact = MBP_USD[`${chip}|${form}|${ram}`];
+  if (exact != null) return { mbp: exact, exact: true };
+  const pts = [];
+  const prefix = `${chip}|${form}|`;
+  for (const k in MBP_USD) {
+    if (k.startsWith(prefix)) pts.push([parseInt(k.split('|')[2]), MBP_USD[k]]);
+  }
+  if (!pts.length) return { mbp: null, exact: false };
+  pts.sort((a,b) => a[0]-b[0]);
+  return { mbp: Math.round(interp(pts, ram)), exact: false };
+}
+
+// Post-June-2026-hike "new today" price (or inflation-adjusted equivalent for discontinued chips)
+function newTodayUSD(chip, form, msrp) {
+  let mult;
+  if (form === 'studio') mult = chip.includes('ultra') ? 1.30 : 1.20;
+  else mult = 1.18;
+  return Math.round(msrp * mult);
+}
+
+function money(usd, ccy) {
+  if (ccy === 'JPY') {
+    const y = Math.round(usd * JPY_PER_USD / 1000) * 1000;
+    return '¥' + y.toLocaleString();
+  }
+  return '$' + Math.round(usd).toLocaleString();
+}
+
+function showError(msg) {
+  const box = document.getElementById('errBox');
+  box.textContent = msg;
+  box.classList.add('show');
+  document.getElementById('result').classList.remove('show');
+}
+function clearError() { document.getElementById('errBox').classList.remove('show'); }
 
 // ═══════════════════════════════════════════════════════════════
 //  MAIN CALC
@@ -459,88 +589,117 @@ function calc() {
   const price  = parseFloat(document.getElementById('price').value);
   const ccy    = document.querySelector('#currencyToggle .active').dataset.ccy;
 
-  // Validate
-  if (!price || price <= 0) { alert('Enter a price!'); return; }
+  if (!price || price <= 0) { showError('⚠️ Enter a valid price first.'); return; }
 
-  // Convert JPY→USD ~ 155:1
-  const priceUSD = ccy === 'JPY' ? price / 155 : price;
-
-  // Lookup MSRP
   const key = `${chip}|${form}`;
   const msrpMap = MSRP[key];
   if (!msrpMap || msrpMap[ramGb] === undefined) {
-    document.getElementById('result').classList.remove('show');
-    alert(`⚠️ ${ramGb}GB RAM is not available for this config. Please pick a valid combination.`);
+    showError(`⚠️ ${ramGb}GB isn't a real config for this chip + form factor. Pick a valid combination.`);
     return;
   }
+  clearError();
+
+  const priceUSD    = ccy === 'JPY' ? price / JPY_PER_USD : price;
   const originalMSRP = msrpMap[ramGb];
+  const newToday     = newTodayUSD(chip, form, originalMSRP);
+  const { mbp, exact: mbpExact } = getMBP(chip, form, ramGb);
+  const effMBP = mbp != null ? mbp * COND_CEIL[cond] : null;
 
-  // ─── Factor 1: Deal Quality (30%) ───
-  // How much below MSRP?
-  const discountPct = Math.max(0, (originalMSRP - priceUSD) / originalMSRP);
-  // Adjust for age — a 5yr old Mac should be cheaper; the "expected" discount
-  const age = ageYears(chip);
-  const expectedDepreciation = Math.min(.85, age * .12);  // ~12% per year
-  // Deal quality = actual discount / expected discount (capped at 1.5 for amazing deals)
-  let dealFactor = expectedDepreciation > 0
-    ? Math.min(1.4, discountPct / expectedDepreciation)
-    : 1;
-  // Condition adjustment
-  const condAdj = cond === 'new' ? .85 : cond === 'open' ? .90 : cond === 'excellent' ? 1.0 : cond === 'good' ? 1.05 : 1.12;
-  dealFactor = Math.min(1.4, dealFactor * condAdj);
-  const dealScore = Math.min(1, dealFactor);
+  // ─── Factor 1: Deal Quality (30%) — price vs the guide's Max Buy Price ceiling ───
+  let dealScore, ratio;
+  if (effMBP != null) {
+    ratio = effMBP / priceUSD;                 // ≥1 → at/under ceiling
+    if (ratio >= 1) dealScore = 0.82 + 0.18 * Math.min(1, (ratio - 1) / 0.35);
+    else            dealScore = 0.82 * Math.pow(ratio, 2.0);
+    dealScore = clamp(dealScore, 0.05, 1);
+  } else {
+    ratio = 1;
+    dealScore = 0.5;
+  }
 
-  // ─── Factor 2: RAM Rarity & Utility (25%) ───
+  // ─── Factor 2: RAM Rarity & Resale Floor (25%) ───
   let ramScoreVal = ramScore(ramGb);
-  // Unicorn bonus
   const unicornKey = `${chip}|${ramGb}`;
   if (UNICORN[unicornKey]) ramScoreVal = Math.min(1, ramScoreVal + UNICORN[unicornKey]);
-  // RAM bandwidth penalty for M1 (only 200GB/s)
-  if (chip.startsWith('m1-') && !chip.includes('ultra') && ramGb >= 64) ramScoreVal *= .92;
+  // M1 memory-bandwidth ceiling (200GB/s) softens value of big-RAM non-Ultra M1
+  if (chip.startsWith('m1-') && !chip.includes('ultra') && ramGb >= 64) ramScoreVal *= .94;
 
-  // ─── Factor 3: Chip Relevance (15%) ───
-  let chipScoreVal = CHIP_SCORE[chip] ?? .70;
-  if (chip === 'm5-max') chipScoreVal = Math.min(.82, chipScoreVal - .03); // overpriced penalty
+  // ─── Factor 3: Market Timing (20%) — DRAM shortage + Apple hike tailwind ───
+  //  Jul 2026: DRAM still rising (~0.78) blended with fresh Apple hike (~0.90);
+  //  high-RAM SKUs get a stronger buy-now signal (shortage hits them hardest).
+  let timingScore = 0.82 + Math.min(0.15, (ramGb / 128) * 0.15);
+  timingScore = Math.min(1, timingScore);
+  if (cond === 'new') timingScore *= 0.95;                 // buying NEW into the hike is worse timing
+  if (chip === 'm4-ultra-studio') timingScore = 0.30;      // launches into peak DRAM — wait
 
-  // ─── Factor 4: DRAM Market Timing (15%) ───
-  // We're in a structural shortage. Higher RAM = more value in buying now.
-  let dramFactor = .75 + (ramGb / 512);  // 32GB→.81, 128GB→1.0
-  dramFactor = Math.min(1, dramFactor);
+  // ─── Factor 4: Chip Relevance & Longevity (15%) ───
+  let chipScoreVal = CHIP_SCORE[chip] ?? .75;
 
-  // ─── Factor 5: Form Factor Utility (15%) ───
-  let ffScore = form === '16' ? .90 : form === '14' ? .82 : .95; // Studio no battery degradation
-  // Portability bonus for MBP
-  if (form !== 'studio' && chipScoreVal >= .65) ffScore += .05;
+  // ─── Factor 5: Form Factor Utility (10%) ───
+  let ffScore = form === 'studio' ? .95 : form === '16' ? .90 : .85;  // Studio: no battery wear
+  if (form === '16' && ramGb >= 64) ffScore += .03;                   // 16″ resale edge for high-RAM
 
   // ─── Weighted final ───
-  const w = [.30, .25, .15, .15, .15];
-  let raw = dealScore*w[0] + ramScoreVal*w[1] + chipScoreVal*w[2] + dramFactor*w[3] + ffScore*w[4];
+  const w = [.30, .25, .20, .15, .10];
+  let raw = dealScore*w[0] + ramScoreVal*w[1] + timingScore*w[2] + chipScoreVal*w[3] + ffScore*w[4];
+  // Price-discipline gate: overpaying vs ceiling drags the whole score
+  const overpayMult = ratio < 1 ? (0.6 + 0.4 * ratio) : 1;
+  raw *= overpayMult;
 
-  // Cap
-  let confidence = Math.round(Math.min(.98, Math.max(.05, raw)) * 100);
+  let confidence = Math.round(clamp(raw, 0.05, 0.98) * 100);
+  // M4 Ultra launches into peak DRAM — guide says do-not-buy-at-launch, so cap the signal low
+  if (chip === 'm4-ultra-studio') confidence = Math.min(confidence, 48);
 
   // ─── Signal & Verdict ───
   let signal, signalClass, verdictText;
-  if (confidence >= 92) { signal = 'KKKKK'; signalClass = 'kkkkk'; verdictText = '🔥 No-brainer buy. This config is rare and priced well below market during a DRAM shortage.'; }
-  else if (confidence >= 82) { signal = 'KKKK'; signalClass = 'kkkk'; verdictText = '✅ Strong buy. Very good deal — you won\'t find this much cheaper in the current market.'; }
-  else if (confidence >= 70) { signal = 'KKK'; signalClass = 'kkk'; verdictText = '👍 Moderate buy. Fair price for current conditions, but room to negotiate.'; }
-  else if (confidence >= 55) { signal = 'KK'; signalClass = 'kk'; verdictText = '👌 Weak buy. Only get it if you genuinely need this specific config right now.'; }
-  else if (confidence >= 40) { signal = 'K'; signalClass = 'k'; verdictText = '⚠️ Wait. Overpriced for what it is — prices are likely to come down or better deals exist.'; }
-  else { signal = '✗ SKIP'; signalClass = 'skip'; verdictText = '🚫 Do not buy. This is either too expensive or a bad config choice in the current climate.'; }
+  if (confidence >= 90)      { signal = 'KKKKK'; signalClass = 'kkkkk'; verdictText = '🔥 No-brainer buy. Rare config priced within the buy-ceiling during a structural DRAM shortage — new-equivalent costs far more after the June 2026 hike.'; }
+  else if (confidence >= 80) { signal = 'KKKK';  signalClass = 'kkkk';  verdictText = '✅ Strong buy. Solid deal versus the current market — you won\'t find this much cheaper while DRAM stays tight.'; }
+  else if (confidence >= 70) { signal = 'KKK';   signalClass = 'kkk';   verdictText = '👍 Moderate buy. Fair for current conditions; push the seller toward the max buy price.'; }
+  else if (confidence >= 58) { signal = 'KK';    signalClass = 'kk';    verdictText = '👌 Weak buy. At or above the buy-ceiling — only if you need this exact config right now.'; }
+  else if (confidence >= 45) { signal = 'K';     signalClass = 'k';     verdictText = '⚠️ Wait / negotiate. Overpriced versus the ceiling — better deals are likely.'; }
+  else                       { signal = '✗ SKIP'; signalClass = 'skip'; verdictText = '🚫 Skip. Well above the buy-ceiling, or a poor-value config in this climate.'; }
 
-  // ─── Render ───
+  // M4 Ultra special-case: guide says do not buy at launch
+  if (chip === 'm4-ultra-studio') {
+    verdictText = '⏳ Wait. M4 Ultra launches straight into peak DRAM pricing (late 2026/early 2027). The smart play is a used M3 or M2 Ultra now — skip M4 Ultra at launch.';
+  }
+
+  // ─── Render header ───
   const confDeg = (confidence / 100) * 360;
   document.getElementById('confCircle').style.background =
     `conic-gradient(#f59e0b ${confDeg}deg, #1a1a2e ${confDeg}deg)`;
   document.getElementById('confPct').textContent = confidence + '%';
   document.getElementById('signalBadge').textContent = signal;
   document.getElementById('signalBadge').style.color =
-    confidence >= 82 ? '#4ade80' : confidence >= 70 ? '#fbbf24' : confidence >= 55 ? '#fb923c' : '#f87171';
+    confidence >= 80 ? '#4ade80' : confidence >= 70 ? '#fbbf24' : confidence >= 58 ? '#fb923c' : '#f87171';
+
+  // ─── Deal line: price vs MBP ceiling ───
+  const dealEl = document.getElementById('dealLine');
+  if (effMBP != null) {
+    const diffUSD = effMBP - priceUSD;
+    const pctOff = Math.round(Math.abs(diffUSD) / effMBP * 100);
+    if (diffUSD >= 0) {
+      dealEl.className = 'deal-line good';
+      dealEl.textContent = `✓ Within buy-ceiling — ${money(diffUSD, ccy)} (${pctOff}%) under the max buy price of ${money(effMBP, ccy)}`;
+    } else {
+      dealEl.className = 'deal-line bad';
+      dealEl.textContent = `✗ Over the ceiling — ${money(-diffUSD, ccy)} (${pctOff}%) above the max buy price of ${money(effMBP, ccy)}`;
+    }
+  } else {
+    dealEl.className = 'deal-line bad';
+    dealEl.textContent = 'No firm buy-ceiling — unreleased/edge config, treat with caution.';
+  }
 
   document.getElementById('verdictLine').className = 'verdict ' + signalClass;
   document.getElementById('verdictLine').textContent = verdictText;
 
-  // Details
+  // ─── Market timing banner (date-accurate, not derived from the score) ───
+  document.getElementById('marketBanner').innerHTML =
+    `📈 <b>DRAM: still rising</b> (Jul 2026 — earliest relief H2 2027, mid-2025 lows likely gone for good). ` +
+    `🍎 <b>Apple +18–33%</b> on Jun 25 2026 (MacBook Pro +18%, Mac Studio Ultra +32%). ` +
+    `Used prices lag the hike by 2–4 weeks — this is the golden buy window.`;
+
+  // ─── Details ───
   const chipNames = {
     'm1-max':'M1 Max','m2-max':'M2 Max','m3-max':'M3 Max','m4-max':'M4 Max','m5-max':'M5 Max',
     'm1-max-studio':'M1 Max Studio','m1-ultra-studio':'M1 Ultra Studio',
@@ -548,35 +707,28 @@ function calc() {
     'm3-ultra-studio':'M3 Ultra Studio','m4-ultra-studio':'M4 Ultra Studio',
   };
   const formNames = { '14':'14″ MBP','16':'16″ MBP','studio':'Mac Studio' };
-  document.getElementById('detailConfig').textContent =
-    `${chipNames[chip]} · ${formNames[form]} · ${ramGb}GB`;
-  document.getElementById('detailMsrp').textContent = `$${originalMSRP.toLocaleString()}`;
-
-  // MBP (max buy price) is the guide's threshold — use the deal threshold logic
-  const ageAdj = 1 - expectedDepreciation;
-  const dramPremium = 1 + Math.min(.25, ramGb / 640);  // up to +25% premium for 128GB
-  const mbpUSD = Math.round(originalMSRP * ageAdj * dramPremium * (cond === 'new' ? .95 : cond === 'open' ? .88 : cond === 'excellent' ? .82 : cond === 'good' ? .73 : .62));
-  document.getElementById('detailMbp').textContent = `$${mbpUSD.toLocaleString()}`;
+  document.getElementById('detailConfig').textContent = `${chipNames[chip]} · ${formNames[form]} · ${ramGb}GB`;
+  document.getElementById('detailMsrp').textContent = money(originalMSRP, ccy);
+  document.getElementById('detailNewToday').textContent = money(newToday, ccy);
+  document.getElementById('detailMbp').textContent =
+    effMBP != null ? money(effMBP, ccy) + (mbpExact ? '' : ' *') : '—';
   document.getElementById('detailYourPrice').textContent =
     ccy === 'JPY' ? `¥${price.toLocaleString()}` : `$${price.toLocaleString()}`;
 
-  const discPctDisplay = Math.round(discountPct * 100);
+  const discVsNew = Math.round((newToday - priceUSD) / newToday * 100);
   document.getElementById('detailDiscount').textContent =
-    discountPct > 0 ? `−${discPctDisplay}% vs MSRP` : 'At or above MSRP';
+    discVsNew > 0 ? `−${discVsNew}% off new` : `+${-discVsNew}% over new`;
 
-  const dramDesc = confidence >= 75 ? '📈 Rising (buy now)' : confidence >= 60 ? '📈 Elevated' : '📉 Stabilizing';
-  document.getElementById('detailDram').textContent = dramDesc;
-
-  // Breakdown bars
+  // ─── Breakdown bars ───
   const items = [
-    { label: 'Deal Quality',   w: '30%', score: dealScore },
-    { label: 'RAM Rarity',     w: '25%', score: ramScoreVal },
-    { label: 'Chip Relevance', w: '15%', score: chipScoreVal },
-    { label: 'DRAM Timing',    w: '15%', score: dramFactor },
-    { label: 'Form Factor',    w: '15%', score: ffScore },
+    { label: 'Deal vs Ceiling', w: '30%', score: dealScore },
+    { label: 'RAM Rarity',      w: '25%', score: ramScoreVal },
+    { label: 'Market Timing',   w: '20%', score: timingScore },
+    { label: 'Chip Relevance',  w: '15%', score: chipScoreVal },
+    { label: 'Form Factor',     w: '10%', score: ffScore },
   ];
   document.getElementById('breakdownBars').innerHTML = items.map(i => {
-    const pct = Math.round(i.score * 100);
+    const pct = Math.round(clamp(i.score, 0, 1) * 100);
     const color = pct >= 85 ? '#4ade80' : pct >= 70 ? '#fbbf24' : pct >= 55 ? '#fb923c' : '#f87171';
     return `<div class="breakdown-row">
       <span class="br-label">${i.label}</span>
@@ -586,6 +738,18 @@ function calc() {
     </div>`;
   }).join('');
 
+  // ─── Contextual tips (research-based) ───
+  const tips = [];
+  if (ramGb >= 128) tips.push('🧠 <b>128GB+</b> is the rarity-premium tier — best resale floor (−10–20%/yr) and runs 70B+ LLMs at usable quant. High RAM &gt; new chip.');
+  else if (ramGb === 96) tips.push('🦄 <b>96GB</b> is a unicorn config (M2 Max is the only 96GB laptop ever) — rare and holds value well.');
+  else if (ramGb <= 36) tips.push('📉 Low-RAM SKUs (32–36GB) depreciate fastest (−30–40%/yr) and are hit least by the shortage — weakest resale, negotiate hard.');
+  if (chip === 'm1-max' || chip === 'm1-max-studio') tips.push('💰 Budget king: M1 Max is 5 yrs old but still smokes any Intel Mac. Note 200GB/s bandwidth and no AV1/ray-tracing HW.');
+  if (chip.includes('ultra') || form === 'studio') tips.push('🖥️ Desktop form factor = zero battery wear and 24/7-capable — better sustained value than a laptop at the same spec.');
+  if (cond === 'new') tips.push('🚫 Buying NEW during the hike is the worst value (Rule 2). Used hasn\'t fully caught up — the smart play is used/open-box.');
+  if (ccy === 'JPY') tips.push('🇯🇵 Japan carries a +10–20% premium (weak yen). At or below US used prices, that\'s an automatically stronger buy signal.');
+  if (chip === 'm5-max') tips.push('⏱️ M5 is genuinely faster for ML, but it took the full hike on top of a fresh launch — new is the worst timing in 3 years. Wait for used.');
+  document.getElementById('tips').innerHTML = tips.slice(0, 3).map(t => `<div class="tip">${t}</div>`).join('');
+
   document.getElementById('result').classList.add('show');
 }
 
@@ -593,38 +757,35 @@ function calc() {
 //  UI HELPERS
 // ═══════════════════════════════════════════════════════════════
 
-// Restrict RAM options when chip changes
+// RAM options are derived directly from the MSRP table for the current chip+form
 function updateRamOptions() {
   const chip = document.getElementById('chip').value;
+  const form = document.getElementById('form').value;
   const select = document.getElementById('ram');
-  const valid = VALID_RAM[chip] || [64,128];
+  const valid = Object.keys(MSRP[`${chip}|${form}`] || {}).map(Number);
   const currentVal = parseInt(select.value);
   let hasCurrent = false;
   for (let opt of select.options) {
     const val = parseInt(opt.value);
-    if (valid.includes(val)) {
-      opt.disabled = false;
-      if (val === currentVal) hasCurrent = true;
-    } else {
-      opt.disabled = true;
-    }
+    if (valid.includes(val)) { opt.disabled = false; if (val === currentVal) hasCurrent = true; }
+    else opt.disabled = true;
   }
-  if (!hasCurrent && valid.length > 0) select.value = String(valid[valid.length-1]);
+  if (!hasCurrent && valid.length > 0) {
+    // prefer the largest available RAM (the strongest signal per the guide)
+    select.value = String(Math.max(...valid));
+  }
 }
 
 // Force Studio form factor for studio chips
 function syncFormFactor() {
   const chip = document.getElementById('chip').value;
   const form = document.getElementById('form');
-  if (chip.includes('studio')) {
-    form.value = 'studio';
-    form.disabled = true;
-  } else {
-    form.disabled = false;
-  }
+  if (chip.includes('studio')) { form.value = 'studio'; form.disabled = true; }
+  else { if (form.value === 'studio') form.value = '16'; form.disabled = false; }
 }
 
 document.getElementById('chip').addEventListener('change', () => { syncFormFactor(); updateRamOptions(); });
+document.getElementById('form').addEventListener('change', updateRamOptions);
 document.getElementById('chip').dispatchEvent(new Event('change'));
 
 // Currency toggle
@@ -635,10 +796,8 @@ document.querySelectorAll('#currencyToggle button').forEach(btn => {
   });
 });
 
-// Calc button
+// Calc button + Enter key
 document.getElementById('calcBtn').addEventListener('click', calc);
-
-// Enter key
 document.getElementById('price').addEventListener('keydown', e => { if (e.key === 'Enter') calc(); });
 
 // Auto-run demo on load
