@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>💰 MacBook Pro Kaitori Calculator</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: #0a0a0f;
+    color: #e4e4e7;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+  .container {
+    max-width: 800px;
+    width: 100%;
+    background: linear-gradient(145deg, #121218, #1a1a24);
+    border-radius: 28px;
+    padding: 32px 36px 40px;
+    border: 1px solid #2a2a3a;
+    box-shadow: 0 25px 60px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.03) inset;
+  }
+  h1 {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -.5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  h1 span { background: linear-gradient(135deg,#22c55e,#16a34a); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .subtitle {
+    font-size: 13px;
+    color: #71717a;
+    margin-bottom: 24px;
+    border-bottom: 1px solid #27272a;
+    padding-bottom: 14px;
+  }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field.full { grid-column: 1 / -1; }
+  label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #a1a1aa;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+  }
+  select, input {
+    background: #0d0d14;
+    border: 1px solid #2a2a3a;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 15px;
+    font-family: inherit;
+    color: #e4e4e7;
+    outline: none;
+    transition: border .2s, box-shadow .2s;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2371717a' d='M6 8L0 0h12z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+  select:focus, input:focus { border-color: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,.15); }
+  select:disabled { opacity: .4; cursor: not-allowed; }
+  .calc-btn {
+    grid-column: 1 / -1;
+    background: linear-gradient(135deg,#22c55e,#16a34a);
+    border: none;
+    border-radius: 14px;
+    padding: 16px;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: inherit;
+    color: #09090b;
+    cursor: pointer;
+    transition: transform .15s, box-shadow .2s;
+    margin: 6px 0 4px;
+  }
+  .calc-btn:hover { transform: scale(1.015); box-shadow: 0 8px 30px rgba(34,197,94,.25); }
+  .calc-btn:active { transform: scale(.98); }
+
+  .result { display: none; margin-top: 22px; animation: fadeUp .4s ease; }
+  .result.show { display: block; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+  .price-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .price-card {
+    background: #0d0d14;
+    border: 1px solid #1f1f2a;
+    border-radius: 14px;
+    padding: 16px;
+    text-align: center;
+  }
+  .price-card .store { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: #71717a; }
+  .price-card .amount { font-size: 24px; font-weight: 800; margin: 6px 0; }
+  .price-card .badge { font-size: 10px; font-weight: 700; text-transform: uppercase; padding: 2px 8px; border-radius: 6px; }
+  .price-card.best { border-color: rgba(34,197,94,.3); background: rgba(34,197,94,.06); }
+  .price-card.best .badge { background: rgba(34,197,94,.15); color: #4ade80; }
+  .badge.rec { background: rgba(245,158,11,.12); color: #fbbf24; }
+  .badge.low { background: rgba(239,68,68,.1); color: #f87171; }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 14px 0;
+  }
+  .detail-item {
+    background: #0d0d14;
+    border-radius: 10px;
+    padding: 10px 14px;
+    border: 1px solid #1f1f2a;
+  }
+  .detail-item .label { font-size: 11px; color: #71717a; text-transform: uppercase; letter-spacing: .4px; }
+  .detail-item .value { font-size: 15px; font-weight: 700; margin-top: 2px; }
+
+  .tip {
+    background: rgba(34,197,94,.06);
+    border: 1px solid rgba(34,197,94,.15);
+    border-radius: 12px;
+    padding: 14px 18px;
+    font-size: 13px;
+    color: #a1a1aa;
+    line-height: 1.6;
+    margin-top: 8px;
+  }
+  .tip strong { color: #4ade80; }
+
+  .footnote {
+    font-size: 11px;
+    color: #52525b;
+    margin-top: 14px;
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 640px) {
+    .container { padding: 20px 16px; }
+    .grid { grid-template-columns: 1fr; }
+    .price-cards { grid-template-columns: 1fr; }
+    .detail-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+<h1>💰 <span>Kaitori</span> Calculator</h1>
+<div class="subtitle">MacBook Pro Max trade-in estimate · based on <strong>Jul 2026</strong> Japan market data from Janpara, Iosys & Akibakan</div>
+
+<div class="grid">
+  <div class="field">
+    <label>Chip</label>
+    <select id="chip">
+      <option value="m1-max">M1 Max (2021)</option>
+      <option value="m2-max">M2 Max (2023)</option>
+      <option value="m3-max" selected>M3 Max (2023)</option>
+      <option value="m4-max">M4 Max (2024)</option>
+      <option value="m5-max">M5 Max (2025–26)</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>Screen Size</label>
+    <select id="size">
+      <option value="14">14-inch</option>
+      <option value="16" selected>16-inch</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>RAM</label>
+    <select id="ram"></select>
+  </div>
+
+  <div class="field">
+    <label>SSD</label>
+    <select id="ssd">
+      <option value="512">512 GB</option>
+      <option value="1024" selected>1 TB</option>
+      <option value="2048">2 TB</option>
+      <option value="4096">4 TB</option>
+      <option value="8192">8 TB</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>Condition</label>
+    <select id="condition">
+      <option value="unused">未使用品 (Unused / New)</option>
+      <option value="a" selected>中古A (Excellent — minimal wear)</option>
+      <option value="b">中古B (Good — normal scratches)</option>
+      <option value="c">中古C (Fair — noticeable damage)</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>Accessories</label>
+    <select id="accessories">
+      <option value="full" selected>Complete (box + charger + cable)</option>
+      <option value="partial">Partial (charger only, no box)</option>
+      <option value="none">None (device only)</option>
+    </select>
+  </div>
+
+  <button class="calc-btn" id="calcBtn">🔮 Estimate Kaitori Price →</button>
+</div>
+
+<div class="result" id="result">
+  <div class="price-cards" id="priceCards"></div>
+
+  <div class="detail-grid" id="detailGrid"></div>
+
+  <div class="tip" id="tipBox"></div>
+
+  <div class="footnote">
+    Prices in JPY (¥), tax-included. Actual quotes vary by store, stock, and negotiation.<br>
+    Data sources: Janpara, Iosys, Akibakan, PC Koubou — Jul 2026. <strong>Tuesday (火曜日) = +5% at Janpara.</strong>
+  </div>
+</div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  BASE KAITORI DATA (from market research Jul 2026)
+//  Prices are for 中古A (Excellent) with complete accessories.
+// ═══════════════════════════════════════════════════════════════
+
+const DATA = {
+  // KEY: chip|size|ram/ssd
+  // Values: {janpara, iosys, akibakan} in JPY
+
+  // ── M1 Max 14" ──
+  'm1-max|14|32|1024':  { janpara:140000, iosys:163000, akibakan:150000 },
+  'm1-max|14|64|1024':  { janpara:170000, iosys:195000, akibakan:180000 },
+  // M1 Max 16"
+  'm1-max|16|32|1024':  { janpara:175000, iosys:190000, akibakan:175000 },
+  'm1-max|16|64|1024':  { janpara:210000, iosys:230000, akibakan:220000 },
+  'm1-max|16|64|8192':  { janpara:250000, iosys:280000, akibakan:260000 },
+
+  // ── M2 Max 14" ──
+  'm2-max|14|32|1024':  { janpara:175000, iosys:201000, akibakan:185000 },
+  'm2-max|14|64|1024':  { janpara:210000, iosys:240000, akibakan:220000 },
+  'm2-max|14|96|1024':  { janpara:270000, iosys:310000, akibakan:285000 },
+  // M2 Max 16"
+  'm2-max|16|32|1024':  { janpara:205000, iosys:211000, akibakan:209000 },
+  'm2-max|16|64|1024':  { janpara:250000, iosys:270000, akibakan:260000 },
+  'm2-max|16|96|1024':  { janpara:310000, iosys:350000, akibakan:330000 },
+
+  // ── M3 Max 14" ──
+  'm3-max|14|36|1024':  { janpara:195000, iosys:231000, akibakan:215000 },
+  'm3-max|14|48|1024':  { janpara:230000, iosys:260000, akibakan:245000 },
+  'm3-max|14|64|1024':  { janpara:270000, iosys:310000, akibakan:290000 },
+  'm3-max|14|128|1024': { janpara:350000, iosys:400000, akibakan:380000 },
+  // M3 Max 16"
+  'm3-max|16|36|1024':  { janpara:225000, iosys:235000, akibakan:230000 },
+  'm3-max|16|48|1024':  { janpara:260000, iosys:256000, akibakan:250000 },
+  'm3-max|16|64|1024':  { janpara:310000, iosys:340000, akibakan:320000 },
+  'm3-max|16|128|1024': { janpara:410000, iosys:440000, akibakan:430000 },
+
+  // ── M4 Max 14" ──
+  'm4-max|14|36|1024':  { janpara:250000, iosys:261000, akibakan:255000 },
+  'm4-max|14|48|1024':  { janpara:280000, iosys:300000, akibakan:290000 },
+  'm4-max|14|64|1024':  { janpara:330000, iosys:360000, akibakan:345000 },
+  'm4-max|14|128|1024': { janpara:430000, iosys:470000, akibakan:450000 },
+  // M4 Max 16"
+  'm4-max|16|36|1024':  { janpara:280000, iosys:286000, akibakan:283000 },
+  'm4-max|16|48|1024':  { janpara:310000, iosys:306000, akibakan:308000 },
+  'm4-max|16|64|1024':  { janpara:370000, iosys:400000, akibakan:385000 },
+  'm4-max|16|128|1024': { janpara:480000, iosys:520000, akibakan:500000 },
+
+  // ── M5 Max 14" ──
+  'm5-max|14|36|2048':  { janpara:400000, iosys:420000, akibakan:450000 },
+  'm5-max|14|48|2048':  { janpara:440000, iosys:470000, akibakan:490000 },
+  'm5-max|14|64|2048':  { janpara:500000, iosys:530000, akibakan:550000 },
+  'm5-max|14|128|2048': { janpara:560000, iosys:620000, akibakan:630000 },
+  // M5 Max 16"
+  'm5-max|16|36|2048':  { janpara:430000, iosys:460000, akibakan:465000 },
+  'm5-max|16|48|2048':  { janpara:470000, iosys:480000, akibakan:480000 },
+  'm5-max|16|64|2048':  { janpara:530000, iosys:560000, akibakan:580000 },
+  'm5-max|16|128|2048': { janpara:700000, iosys:630000, akibakan:660000 },
+  'm5-max|16|128|8192': { janpara:730000, iosys:660000, akibakan:690000 },
+};
+
+// ── SSD upgrade premiums (relative to base 1TB or 2TB) ──
+const SSD_ADJ = { 512:-15000, 1024:0, 2048:30000, 4096:80000, 8192:150000 };
+
+// ── Condition multipliers ──
+const COND_MULT = { unused:1.15, a:1.0, b:.78, c:.55 };
+
+// ── Accessories adjustment ──
+const ACC_ADJ = { full:1.0, partial:.93, none:.85 };
+
+// ── Valid RAM per chip ──
+const VALID_RAM = {
+  'm1-max':[32,64],
+  'm2-max':[32,64,96],
+  'm3-max':[36,48,64,128],
+  'm4-max':[36,48,64,128],
+  'm5-max':[36,48,64,128],
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  CALC
+// ═══════════════════════════════════════════════════════════════
+
+function getBestKey(chip, size, ram, ssd) {
+  // Try exact match first
+  let key = `${chip}|${size}|${ram}|${ssd}`;
+  if (DATA[key]) return key;
+  // Try with closest standard SSD (1TB for M1-M4, 2TB for M5)
+  let baseSsd = chip.startsWith('m5-') ? 2048 : 1024;
+  key = `${chip}|${size}|${ram}|${baseSsd}`;
+  if (DATA[key]) return key;
+  // Try every SSD variant for this chip/size/ram
+  for (let k in DATA) {
+    if (k.startsWith(`${chip}|${size}|${ram}|`)) return k;
+  }
+  return null;
+}
+
+function calc() {
+  const chip = document.getElementById('chip').value;
+  const size = document.getElementById('size').value;
+  const ram = parseInt(document.getElementById('ram').value);
+  const ssd = parseInt(document.getElementById('ssd').value);
+  const cond = document.getElementById('condition').value;
+  const acc = document.getElementById('accessories').value;
+
+  // Find base data
+  const baseKey = getBestKey(chip, size, ram, ssd);
+  if (!baseKey) {
+    alert('⚠️ No pricing data for this configuration. Try a different combination.');
+    return;
+  }
+
+  const base = DATA[baseKey];
+
+  // SSD adjustment
+  const keyParts = baseKey.split('|');
+  const baseSsd = parseInt(keyParts[3]);
+  const ssdDiff = ssd - baseSsd;
+  const ssdAdj = SSD_ADJ[ssd] ?? 0;
+
+  // Condition & accessories
+  const condMult = COND_MULT[cond];
+  const accMult = ACC_ADJ[acc];
+
+  // Calculate for each store
+  const stores = [
+    { name:'Janpara', key:'janpara', color:'#22c55e', tip:'Sell in-store for instant cash. +5% on Tuesdays (火曜日).' },
+    { name:'Iosys',  key:'iosys',  color:'#3b82f6', tip:'Best for M1–M4 Max. Mail-in or 13 nationwide stores.' },
+    { name:'Akibakan', key:'akibakan', color:'#f59e0b', tip:'Best for M5 Max. Mac specialist store in Akihabara.' },
+  ];
+
+  let best = { name:'', amount:0, diff:0 };
+  const cards = stores.map(s => {
+    let amt = Math.round((base[s.key] + ssdAdj) * condMult * accMult);
+    // Round to nearest 1000
+    amt = Math.round(amt / 1000) * 1000;
+    const isBest = amt > best.amount;
+    if (isBest) best = { name:s.name, amount:amt, diff:0 };
+    return { ...s, amount:amt, isBest };
+  });
+
+  // Compute diffs
+  cards.forEach(c => {
+    c.diff = c.amount - best.amount;
+    c.pct = best.amount > 0 ? Math.round((c.amount / best.amount) * 100) : 0;
+  });
+
+  // ─── Render ───
+  const pc = document.getElementById('priceCards');
+  pc.innerHTML = cards.map(c => `
+    <div class="price-card${c.isBest ? ' best' : ''}">
+      <div class="store">${c.name}</div>
+      <div class="amount" style="color:${c.color}">¥${c.amount.toLocaleString()}</div>
+      ${c.isBest ? '<div class="badge">🏆 Best Price</div>' : `<div class="badge ${c.diff < -10000 ? 'low' : 'rec'}">−¥${Math.abs(c.diff).toLocaleString()}</div>`}
+    </div>
+  `).join('');
+
+  // Details
+  const chipNames = {'m1-max':'M1 Max','m2-max':'M2 Max','m3-max':'M3 Max','m4-max':'M4 Max','m5-max':'M5 Max'};
+  const condNames = {'unused':'未使用品 (New)','a':'中古A (Excellent)','b':'中古B (Good)','c':'中古C (Fair)'};
+  const accNames = {'full':'Complete','partial':'Partial','none':'None'};
+
+  document.getElementById('detailGrid').innerHTML = `
+    <div class="detail-item"><div class="label">Device</div><div class="value">${chipNames[chip]} · ${size}" · ${ram}GB · ${ssd >= 1024 ? ssd/1024 + 'TB' : ssd + 'GB'}</div></div>
+    <div class="detail-item"><div class="label">Condition</div><div class="value">${condNames[cond]}</div></div>
+    <div class="detail-item"><div class="label">Accessories</div><div class="value">${accNames[acc]}</div></div>
+    <div class="detail-item"><div class="label">SSD Adj.</div><div class="value">${ssdAdj >= 0 ? '+' : ''}${ssdAdj.toLocaleString()} (base ${baseSsd >= 1024 ? baseSsd/1024 + 'TB' : baseSsd + 'GB'})</div></div>
+  `;
+
+  // Tip
+  document.getElementById('tipBox').innerHTML = `
+    💡 <strong>Best to sell to ${best.name}</strong> — estimated <strong>¥${best.amount.toLocaleString()}</strong>.
+    ${stores.find(s => s.name === best.name).tip}
+    ${cond === 'unused' ? '<br><br>✨ Unused condition = +15% premium over 中古A. Great time to sell!' : ''}
+    ${cond === 'c' ? '<br><br>⚠️ Fair condition takes a ~45% hit. Consider repairing minor issues before selling.' : ''}
+    ${acc === 'none' ? '<br><br>📦 No accessories = −15%. A genuine Apple charger alone can add ¥5k–10k.' : ''}
+  `;
+
+  document.getElementById('result').classList.add('show');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  UI: Restrict RAM based on chip
+// ═══════════════════════════════════════════════════════════════
+function updateRamOptions() {
+  const chip = document.getElementById('chip').value;
+  const sel = document.getElementById('ram');
+  const valid = VALID_RAM[chip] || [36,64,128];
+  const cur = parseInt(sel.value);
+  let has = false;
+  sel.innerHTML = '';
+  valid.forEach(v => {
+    const opt = document.createElement('option');
+    opt.value = v;
+    opt.textContent = v + ' GB';
+    sel.appendChild(opt);
+    if (v === cur) has = true;
+  });
+  if (!has) sel.value = valid[valid.length-1];
+}
+
+document.getElementById('chip').addEventListener('change', updateRamOptions);
+updateRamOptions();
+
+document.getElementById('calcBtn').addEventListener('click', calc);
+
+// Auto-run with demo
+window.addEventListener('load', () => { setTimeout(calc, 300); });
+</script>
+</body>
+</html>
